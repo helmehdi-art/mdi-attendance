@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#04503F"/>
+<meta name="color-scheme" content="light only"/>
+<title>MDI Attendance — Prof. Hussein M Elmehdi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#f4f7f5!important;color:#1a2e25!important;font-family:'Inter',system-ui,sans-serif;min-height:100vh;color-scheme:light!important}
+@media(prefers-color-scheme:dark){html,body{background:#f4f7f5!important;color:#1a2e25!important}}
+.wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem;background:#f4f7f5}
+.card{background:#fff;border-radius:16px;border:1px solid #d0e4dc;padding:2rem;width:100%;max-width:400px;box-shadow:0 2px 12px rgba(4,80,63,0.08)}
+.logo{width:52px;height:52px;border-radius:14px;background:#04503F;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1.25rem}
+h1{font-size:22px;font-weight:600;text-align:center;color:#1a2e25;margin-bottom:6px}
+.sub{color:#3d6b55;font-size:13px;text-align:center;margin-bottom:4px}
+.sub2{color:#6b9e87;font-size:12px;text-align:center;margin-bottom:2rem}
+label{display:block;font-size:11px;font-weight:600;color:#3d6b55;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em}
+input,select{width:100%;padding:11px 13px;border:1px solid #c2d9d1;border-radius:9px;font-size:14px;font-family:inherit;background:#fff!important;color:#1a2e25!important;margin-bottom:14px;outline:none;-webkit-text-fill-color:#1a2e25!important}
+input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,0.12)}
+.code-input{font-family:monospace;font-size:24px;letter-spacing:8px;text-align:center;text-transform:uppercase}
+.btn{width:100%;padding:13px;border:none;border-radius:9px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.btn-green{background:#04503F;color:#fff}
+.btn-outline{background:#f4f7f5;color:#3d6b55;border:1px solid #d0e4dc}
+.err{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-bottom:14px;color:#b91c1c;font-size:13px;line-height:1.5}
+.ok{background:rgba(4,80,63,0.08);border:1px solid rgba(4,80,63,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;color:#04503F;font-size:13px}
+.confirm-box{background:rgba(4,80,63,0.06);border:1px solid rgba(4,80,63,0.15);border-radius:10px;padding:1.25rem;margin-bottom:14px}
+.confirm-box p{margin:0;font-size:13px;color:#6b9e87;margin-bottom:6px}
+.confirm-box .name{font-weight:600;font-size:16px;color:#1a2e25;margin-bottom:3px}
+.confirm-box .uid{font-family:monospace;color:#3d6b55;font-size:13px;margin-bottom:3px}
+.confirm-box .sec{color:#6b9e87;font-size:13px}
+.decl{background:rgba(4,80,63,0.04);border:1px solid rgba(4,80,63,0.12);border-radius:10px;padding:1rem;margin-bottom:14px;font-size:13px;color:#3d6b55;line-height:1.6;font-style:italic}
+.success-wrap{text-align:center;padding:2rem 0}
+.success-emoji{font-size:72px;margin-bottom:16px}
+.success-wrap h2{font-size:22px;font-weight:600;color:#1a2e25;margin-bottom:8px}
+.success-wrap .sname{color:#3d6b55;font-size:15px;font-weight:500;margin-bottom:4px}
+.success-wrap .sid{font-family:monospace;color:#6b9e87;font-size:13px;margin-bottom:4px}
+.success-wrap .sdate{color:#9cb8ad;font-size:13px;margin-bottom:1.5rem}
+.close-note{background:rgba(4,80,63,0.08);border:1px solid rgba(4,80,63,0.15);border-radius:10px;padding:12px 20px;font-size:13px;color:#04503F;font-weight:500}
+.hint{font-size:11px;color:#9cb8ad;text-align:center;margin-top:12px;line-height:1.6}
+.hidden{display:none}
+.badge{display:inline-block;background:rgba(4,80,63,0.08);color:#04503F;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:500;margin-bottom:1rem;text-align:center;width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="card">
+  <div class="logo">🎓</div>
+  <h1>MDI Attendance</h1>
+  <p class="sub">University of Sharjah · Prof. Hussein M Elmehdi</p>
+  <p class="sub2">Sec 61 — Mon/Wed 8:00 · Sec 63 — Mon/Wed 11:00</p>
+  <button class="btn btn-green" onclick="show('screen-student')">📋 &nbsp;Student — Mark Attendance</button>
+  <div style="text-align:center;color:#9cb8ad;font-size:12px;margin:10px 0">— professor access —</div>
+  <input type="password" id="pin-input" placeholder="Professor PIN" onkeydown="if(event.key==='Enter')profLogin()"/>
+  <button class="btn btn-outline" onclick="profLogin()">🔐 &nbsp;Sign in</button>
+  <div id="pin-err" class="err hidden"></div>
+</div>
+
+<!-- STUDENT SCREEN -->
+<div id="screen-student" class="card hidden">
+  <div class="badge" id="date-badge">Loading...</div>
+  <h2 style="font-size:20px;font-weight:600;margin-bottom:1.5rem;color:#1a2e25">Mark Your Attendance</h2>
+  <div id="student-err" class="err hidden"></div>
+  <div id="step-form">
+    <label>Your Section</label>
+    <select id="sel-section">
+      <option value="">— Select your section —</option>
+      <option value="61">Section 61 · Mon/Wed 8:00 AM</option>
+      <option value="63">Section 63 · Mon/Wed 11:00 AM</option>
+    </select>
+    <label>UOS Student ID</label>
+    <input type="text" id="inp-uid" placeholder="e.g. U25101234" style="font-family:monospace;letter-spacing:1px;font-size:16px"/>
+    <label>Session Code</label>
+    <input type="text" id="inp-code" placeholder="_ _ _ _" class="code-input" maxlength="6" onkeydown="if(event.key==='Enter')studentSubmit()"/>
+    <button class="btn btn-green" onclick="studentSubmit()">Continue →</button>
+    <button class="btn btn-outline" onclick="show('screen-login')">← Back</button>
+    <p class="hint">One submission per session · Sharing codes violates academic integrity</p>
+  </div>
+  <div id="step-confirm" class="hidden">
+    <div class="confirm-box">
+      <p>Confirm your details</p>
+      <div class="name" id="conf-name"></div>
+      <div class="uid" id="conf-uid"></div>
+      <div class="sec" id="conf-sec"></div>
+    </div>
+    <div class="decl">"I confirm that I am physically present in today's class and I am submitting this record myself."</div>
+    <a id="form-link" href="#" target="_blank" class="btn btn-green" style="text-decoration:none" onclick="markDone()">✅ &nbsp;Tap here to submit attendance</a>
+    <button class="btn btn-outline" onclick="showStep('step-form')">← Back</button>
+  </div>
+  <div id="step-done" class="hidden">
+    <div class="success-wrap">
+      <div class="success-emoji">✅</div>
+      <h2>Attendance Recorded!</h2>
+      <p class="sname" id="done-name"></p>
+      <p class="sid" id="done-uid"></p>
+      <p class="sdate" id="done-date"></p>
+      <div class="close-note">You may close this page.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFESSOR SCREEN -->
+<div id="screen-prof" class="card hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    <div style="font-weight:600;color:#1a2e25">Professor Dashboard</div>
+    <button onclick="show('screen-login')" style="background:none;border:1px solid #d0e4dc;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;color:#3d6b55">Sign out</button>
+  </div>
+  <div id="prof-codes"></div>
+  <a href="https://docs.google.com/spreadsheets/" target="_blank" class="btn btn-green" style="text-decoration:none;margin-top:1rem">📊 Open Google Sheet</a>
+</div>
+
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────
+const ROSTER = {
+  "61": [
+    {id:"UTEST101",first:"TEST",last:"1 (TEST ACCOUNT)"},
+    {id:"U24101832",first:"FATEMEH",last:"ABDOLBASET FARARIAN SOHLI"},
+    {id:"U24101163",first:"ALI",last:"ABDULRAHMAN BALASI"},
+    {id:"U25105597",first:"NASSER",last:"AHMAD KHODADAD SHAMBEH"},
+    {id:"U24102833",first:"SHAHAD",last:"AHMED ABDALLA AHMED ALDHUHOORI"},
+    {id:"U25104843",first:"ALYA",last:"AHMED JUMA HAMAD ALMASHGHOUNI"},
+    {id:"U24100936",first:"HAYAT",last:"ALI OBAID ALMUTAWA ALMAZROUEI"},
+    {id:"U23100096",first:"TAGREED",last:"ALI SHAMBEH SHAHDAD ALBLOOSHI"},
+    {id:"U23106335",first:"MHANNA",last:"A M S S M ALKHASHAN"},
+    {id:"U25107194",first:"RETAJ",last:"A S A ALFOUDARI"},
+    {id:"U25102834",first:"SAAVARI YA",last:"DEEPU SIVADAS DEEPU"},
+    {id:"U25106958",first:"BATOL",last:"E S E ESMAEL"},
+    {id:"U25102012",first:"GHALA",last:"HAMAD SALEM MOHAMED ALZAHMI"},
+    {id:"U25101395",first:"FATMAH",last:"HAMED HAMDOUCH"},
+    {id:"U25105647",first:"RAWDHA",last:"HASSAN RAMADHAN ABDULLA ALQEBLAN"},
+    {id:"U25103723",first:"REEM",last:"HUSSAIN FADIL ABDALLA ALMAHDI"},
+    {id:"U25102589",first:"MAITHA",last:"IBRAHIM AHMED ABDELAZIZ ALZAROONI"},
+    {id:"U25107451",first:"SADAN",last:"J A A ALHAMMAD"},
+    {id:"U23102935",first:"AYSHA",last:"JASIM MOHAMED ABUCHAS ALHAMMADI"},
+    {id:"U25105639",first:"ROUDA",last:"KHALID MOHAMED JUMA ALHOSANI"},
+    {id:"U25107019",first:"WALEED",last:"KH E A E A ALFAILAKAWI"},
+    {id:"U25106943",first:"JANA",last:"KH S A ALBAHOUH"},
+    {id:"U24107240",first:"DALAL",last:"M D O D ALMUTAIRI"},
+    {id:"U25106727",first:"REEM",last:"M KH H ALSHAMMARI"},
+    {id:"U25105982",first:"HAMDAH",last:"MOHAMED ALI ALGHAZAL ALSHAMSI"},
+    {id:"U25102920",first:"SAALIH A",last:"MOHAMED FAROOK"},
+    {id:"U25106774",first:"SHAIMA",last:"MUSAED ALI SHARIF"},
+    {id:"U25103187",first:"SAMA",last:"NAZEM ABBASI"},
+    {id:"U25103763",first:"RODA",last:"OMAR MOHAMED OMAR ALJABERI"},
+    {id:"U25101110",first:"DANA",last:"RABIH MADI"},
+    {id:"U25101826",first:"RAIYNA",last:"SHARJIL SHARJIL HUSSAIN"},
+    {id:"U22103439",first:"KHALIFA",last:"YOUSIF MOHAMED AHMED ALNAQBI"},
+  ],
+  "63": [
+    {id:"UTEST101",first:"TEST",last:"1 (TEST ACCOUNT)"},
+    {id:"UTEST202",first:"TEST",last:"2 (TEST ACCOUNT)"},
+    {id:"U25106507",first:"HALEEMATH",last:"A A ALSABT"},
+    {id:"U25101806",first:"TEYA",last:"ABDELHAMID HASSAN SHRAIM"},
+    {id:"U25104463",first:"ALYA",last:"ABDELNASIR SALIM ALDAH ALMATROOSHI"},
+    {id:"U23108330",first:"MOHAMED",last:"ABDULLA MOHAMED SAEED ALYAMMAHI"},
+    {id:"U23108325",first:"MOHAMMED",last:"ABDULLH SULAIYAM SALIM ALDEREI"},
+    {id:"U25102033",first:"NOORALHUDA",last:"ABDULMOUTAZ ABASS FATLAWI"},
+    {id:"U25105203",first:"SAKINAH",last:"ABDUL RAOOF MOHAMMED ABDUL RAOOF"},
+    {id:"U25100979",first:"EMAAN BINT",last:"ADNAN MOHAMMAD ADNAN SOHAIL"},
+    {id:"U25101428",first:"RUMANA",last:"AFREN SHEFAT SALEH SHAH"},
+    {id:"U25101179",first:"SARAH",last:"AHMED ABDULLA ALHELOO ALYAMMAHI"},
+    {id:"U24106839",first:"ASAYEL",last:"A H S ALSHAMMARI"},
+    {id:"U24104246",first:"ALIYA",last:"ALI ABDALLA ALDARWISHI ALSHAMSI"},
+    {id:"U24101006",first:"ROUDA",last:"ALI ABDALLA ALI ALEBRI"},
+    {id:"U23100096",first:"TAGREED",last:"ALI SHAMBEH SHAHDAD ALBLOOSHI"},
+    {id:"U25107004",first:"JARRAH",last:"A M J ALENEZI"},
+    {id:"U25101900",first:"YARA",last:"DAHER"},
+    {id:"U24107220",first:"FOUZ",last:"E B S ALSAIDI"},
+    {id:"U25107323",first:"MARIAM",last:"FADI JABBOUR"},
+    {id:"U25103668",first:"GHANAJ",last:"F M SH ALAJMI"},
+    {id:"U25102516",first:"AMNA",last:"GHULOOM AHMAD MANDKAR ALKOKHARDI"},
+    {id:"U25104907",first:"LEEN",last:"HUSSAM ASAD AKEILA"},
+    {id:"U25102650",first:"SHOUQ",last:"IBRAHIM SABEEL ABDALLA ISMAIL"},
+    {id:"U24101531",first:"SHAMSA",last:"JABER ABDALLAH MOHAMAD"},
+    {id:"U25107196",first:"HOUR",last:"JASIM ABDALLA MOHAMED ALNAQBI"},
+    {id:"U25102465",first:"JANA",last:"JIHAD RABBA"},
+    {id:"U24105781",first:"SHARIFA",last:"KHALID MANSOUR ALMANSOUR ALHARBI"},
+    {id:"U25106214",first:"MOHAMMED",last:"KHALID MUSTAFA MUSTAFA"},
+    {id:"U25101104",first:"KHADEEJA",last:"KHAN ABDUL KAREEM KHAN"},
+    {id:"U25101633",first:"ELIZABETH",last:"LLAGAS ISAYAS"},
+    {id:"U25100776",first:"ZAHRA",last:"MAJED SHEIKH OMAR"},
+    {id:"U25101095",first:"HESSA",last:"MOHAMED HASAN ALI ALMARZOOQI"},
+    {id:"U25101386",first:"RAZAN",last:"MOHAMED YOUSIF JUMA MOHAMED"},
+    {id:"U25102629",first:"SAREH",last:"MOHAMMAD SALEHI"},
+    {id:"U25104311",first:"WADHA",last:"MOHAMMED ALI HAMDOON ALSHEHHI"},
+    {id:"U25103720",first:"AYESHA",last:"MOHAMMED ISMAIL NAYEEM"},
+    {id:"U24103273",first:"HAZZA",last:"MOHAMMED SHTAIT SAEED ALDHAHERI"},
+    {id:"U25107183",first:"HALA",last:"NASER ABDELRAZIQ ABDELRAZIQ"},
+    {id:"U25103473",first:"REEM",last:"NASSER AHMED BIN HERIF ALMHEIRI"},
+    {id:"U25106616",first:"NOURAH",last:"N B Q ALMUTAIRI"},
+    {id:"U24106866",first:"ZAYED",last:"OBAID MATAR MARZOOQ KHAMIS"},
+    {id:"U25101402",first:"NOOR ASHAZ",last:"RAHEMATHULLA AKBAR ALI"},
+    {id:"U24106081",first:"MOHAMMED",last:"RASHED HUMAID ABDULLA ALDEREI"},
+    {id:"U24100267",first:"RAJA",last:"RASHID ABDULLAH AL MAZROO'EI"},
+    {id:"U25100945",first:"KHAWLA",last:"RASHID MAHMOUD ASKAR ALASKAR"},
+    {id:"U25102545",first:"RAYAN",last:"SAEED ABDALLA HAMDOUN ALNAQBI"},
+    {id:"U25106771",first:"SHAHID",last:"SAID SAMIR SAID ELDAM"},
+    {id:"U25104691",first:"SHAHAD",last:"SAIF MOHAMED OBAID AL ALI"},
+    {id:"U25102158",first:"ADA",last:"SHARIEF MOHAMMED SHARIEF MADIKERI ABOOBAKKAR"},
+    {id:"U25104423",first:"MARWA",last:"YASINI"},
+  ]
+};
+
+const DAILY_CODES = {
+  "2026-09-09_61": "ESCT",
+  "2026-09-09_63": "XVZR",
+};
+
+const SECTIONS = {
+  "61": {startH:8, startM:0, open:0, close:15},
+  "63": {startH:11, startM:0, open:0, close:15},
+};
+
+const GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSdlKs0j4C3QO76m83kii-sxdK2n3UPMIhpzEkevxUZde4lIqw/viewform";
+const ENTRIES = {id:"entry.859883994", name:"entry.328045231", section:"entry.898028898", date:"entry.601481051", code:"entry.285424766"};
+const PIN = "1221";
+
+// ── Helpers ──────────────────────────────────────────────────
+function todayISO(){ return new Date().toISOString().split("T")[0]; }
+function fmtDate(iso){ const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],dt=new Date(iso+"T12:00:00"),[,m,d]=iso.split("-"); return `${days[dt.getDay()]} ${d}/${m}`; }
+function nowMin(){ const n=new Date(); return n.getHours()*60+n.getMinutes(); }
+function inWindow(sec){ const s=SECTIONS[sec], o=s.startH*60+s.startM+s.open, c=s.startH*60+s.startM+s.close; return nowMin()>=o&&nowMin()<=c; }
+function windowStr(sec){ const s=SECTIONS[sec],o=s.startH*60+s.startM+s.open,c=s.startH*60+s.startM+s.close; return `${Math.floor(o/60)}:${String(o%60).padStart(2,"0")}–${Math.floor(c/60)}:${String(c%60).padStart(2,"0")}`; }
+
+function show(id){
+  ["screen-login","screen-student","screen-prof"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  if(id==="screen-student"){ document.getElementById("date-badge").textContent=fmtDate(todayISO()); showStep("step-form"); }
+  if(id==="screen-prof") buildProfCodes();
+}
+
+function showStep(id){
+  ["step-form","step-confirm","step-done"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.getElementById("student-err").classList.add("hidden");
+}
+
+function showErr(msg){ const e=document.getElementById("student-err"); e.textContent=msg; e.classList.remove("hidden"); }
+
+// ── Professor ────────────────────────────────────────────────
+function profLogin(){
+  const p=document.getElementById("pin-input").value;
+  if(p===PIN){ show("screen-prof"); document.getElementById("pin-input").value=""; }
+  else { document.getElementById("pin-err").textContent="Incorrect PIN."; document.getElementById("pin-err").classList.remove("hidden"); }
+}
+
+function buildProfCodes(){
+  const today=todayISO();
+  let html="<div style='margin-bottom:1rem'>";
+  ["61","63"].forEach(sec=>{
+    const code=DAILY_CODES[`${today}_${sec}`];
+    const s=SECTIONS[sec];
+    html+=`<div style='background:#f4f7f5;border:1px solid #d0e4dc;border-radius:12px;padding:1.25rem;margin-bottom:12px;text-align:center'>
+      <div style='font-size:12px;color:#3d6b55;font-weight:600;margin-bottom:6px'>SECTION ${sec} · ${s.startH}:${String(s.startM).padStart(2,"00")} AM</div>
+      ${code
+        ? `<div style='font-family:monospace;font-size:48px;font-weight:700;color:#04503F;letter-spacing:10px'>${code}</div>
+           <div style='font-size:12px;color:#6b9e87;margin-top:6px'>Window: ${windowStr(sec)}</div>`
+        : `<div style='color:#b91c1c;font-size:13px'>No code set for today</div>`
+      }
+    </div>`;
+  });
+  html+="</div>";
+  document.getElementById("prof-codes").innerHTML=html;
+}
+
+// ── Student ──────────────────────────────────────────────────
+let currentStudent=null;
+
+function studentSubmit(){
+  const sec=document.getElementById("sel-section").value;
+  const uid=document.getElementById("inp-uid").value.trim().toUpperCase();
+  const code=document.getElementById("inp-code").value.trim().toUpperCase();
+  const today=todayISO();
+
+  if(!sec){ showErr("Please select your section."); return; }
+  if(!uid){ showErr("Please enter your UOS Student ID."); return; }
+  if(!code){ showErr("Please enter the session code."); return; }
+
+  const dayCode=DAILY_CODES[`${today}_${sec}`];
+  if(!dayCode){ showErr("No active session for this section today. Ask your professor."); return; }
+  if(code!==dayCode.toUpperCase()){ showErr("Incorrect session code. Please check the projector."); return; }
+  if(!inWindow(sec)){ showErr("Attendance window is "+windowStr(sec)+" only. You are outside the allowed time."); return; }
+
+  const matches=(ROSTER[sec]||[]).filter(s=>s.id===uid);
+  if(!matches.length){
+    const other=Object.entries(ROSTER).filter(([s])=>s!==sec).flatMap(([,r])=>r).filter(s=>s.id===uid);
+    if(other.length) showErr(`Your ID is registered in Section ${other[0].section||"another section"}, not Section ${sec}.`);
+    else showErr("UOS ID not found in this section's roster. Please check your ID.");
+    return;
+  }
+
+  currentStudent={...matches[0], section:sec, uid, today};
+
+  document.getElementById("conf-name").textContent=`${matches[0].first} ${matches[0].last}`;
+  document.getElementById("conf-uid").textContent=uid;
+  document.getElementById("conf-sec").textContent=`Section ${sec} · ${fmtDate(today)}`;
+
+  const t=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+  const params=new URLSearchParams({
+    [ENTRIES.id]: uid,
+    [ENTRIES.name]: `${matches[0].first} ${matches[0].last}`,
+    [ENTRIES.section]: `Section ${sec}`,
+    [ENTRIES.date]: today,
+    [ENTRIES.code]: dayCode
+  });
+  document.getElementById("form-link").href=`${GFORM}?${params.toString()}`;
+
+  showStep("step-confirm");
+}
+
+function markDone(){
+  if(!currentStudent) return;
+  document.getElementById("done-name").textContent=`${currentStudent.first} ${currentStudent.last}`;
+  document.getElementById("done-uid").textContent=currentStudent.uid;
+  document.getElementById("done-date").textContent=`${fmtDate(currentStudent.today)} · Section ${currentStudent.section}`;
+  setTimeout(()=>showStep("step-done"), 300);
+}
+
+// Init
+document.getElementById("date-badge").textContent=fmtDate(todayISO());
+</script>
+</body>
+</html>
