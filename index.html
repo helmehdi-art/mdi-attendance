@@ -1,4 +1,3 @@
-Index · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,7 +45,7 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
 </head>
 <body>
 <div class="wrap">
- 
+
 <!-- LOGIN SCREEN -->
 <div id="screen-login" class="card">
   <div class="logo">🎓</div>
@@ -59,7 +58,7 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
   <button class="btn btn-outline" onclick="profLogin()">🔐 &nbsp;Sign in</button>
   <div id="pin-err" class="err hidden"></div>
 </div>
- 
+
 <!-- STUDENT SCREEN -->
 <div id="screen-student" class="card hidden">
   <div class="badge" id="date-badge">Loading...</div>
@@ -102,7 +101,7 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
     </div>
   </div>
 </div>
- 
+
 <!-- PROFESSOR SCREEN -->
 <div id="screen-prof" class="card hidden">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
@@ -112,9 +111,9 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
   <div id="prof-codes"></div>
   <a href="https://docs.google.com/spreadsheets/" target="_blank" class="btn btn-green" style="text-decoration:none;margin-top:1rem">📊 Open Google Sheet</a>
 </div>
- 
+
 </div>
- 
+
 <script>
 // ── Data ──────────────────────────────────────────────────────
 const ROSTER = {
@@ -207,25 +206,25 @@ const ROSTER = {
     {id:"U25104423",first:"MARWA",last:"YASINI"},
   ]
 };
- 
+
 const DAILY_CODES = {
   "2026-09-16_61": "XDYB",
   "2026-09-16_63": "UOEX",
   "2026-09-09_61": "ESCT",
   "2026-09-09_63": "XVZR",
 };
- 
+
 const SECTIONS = {
   "61": {startH:8, startM:0, open:0, close:15},
   "63": {startH:11, startM:0, open:0, close:15},
 };
- 
+
 const GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSdlKs0j4C3QO76m83kii-sxdK2n3UPMIhpzEkevxUZde4lIqw/viewform";
 const ENTRIES = {id:"entry.859883994", name:"entry.328045231", section:"entry.898028898", date:"entry.601481051", code:"entry.285424766"};
- 
+
 // Geofencing — Medical Campus, University of Sharjah
 const CLASSROOM = { lat: 25.2880276, lng: 55.4778527, radius: 200 }; // 200 metres
- 
+
 function getDistance(lat1, lng1, lat2, lng2) {
   const R = 6371000; // Earth radius in metres
   const dLat = (lat2-lat1) * Math.PI/180;
@@ -235,7 +234,7 @@ function getDistance(lat1, lng1, lat2, lng2) {
             Math.sin(dLng/2)*Math.sin(dLng/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
- 
+
 function checkLocation() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) { reject("GPS not supported on this device."); return; }
@@ -254,36 +253,36 @@ function checkLocation() {
   });
 }
 const PIN = "1221";
- 
+
 // ── Helpers ──────────────────────────────────────────────────
 function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function fmtDate(iso){ const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],dt=new Date(iso+"T12:00:00"),[,m,d]=iso.split("-"); return `${days[dt.getDay()]} ${d}/${m}`; }
 function nowMin(){ const n=new Date(); return n.getHours()*60+n.getMinutes(); }
 function inWindow(sec){ return true; /* TIME DISABLED FOR TESTING */ }
 function windowStr(sec){ const s=SECTIONS[sec],o=s.startH*60+s.startM+s.open,c=s.startH*60+s.startM+s.close; return `${Math.floor(o/60)}:${String(o%60).padStart(2,"0")}–${Math.floor(c/60)}:${String(c%60).padStart(2,"0")}`; }
- 
+
 function show(id){
   ["screen-login","screen-student","screen-prof"].forEach(s=>document.getElementById(s).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
   if(id==="screen-student"){ document.getElementById("date-badge").textContent=fmtDate(todayISO()); showStep("step-form"); }
   if(id==="screen-prof") buildProfCodes();
 }
- 
+
 function showStep(id){
   ["step-form","step-confirm","step-done"].forEach(s=>document.getElementById(s).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
   document.getElementById("student-err").classList.add("hidden");
 }
- 
+
 function showErr(msg){ const e=document.getElementById("student-err"); e.textContent=msg; e.classList.remove("hidden"); }
- 
+
 // ── Professor ────────────────────────────────────────────────
 function profLogin(){
   const p=document.getElementById("pin-input").value;
   if(p===PIN){ show("screen-prof"); document.getElementById("pin-input").value=""; }
   else { document.getElementById("pin-err").textContent="Incorrect PIN."; document.getElementById("pin-err").classList.remove("hidden"); }
 }
- 
+
 function buildProfCodes(){
   const today=todayISO();
   let html="<div style='margin-bottom:1rem'>";
@@ -302,20 +301,20 @@ function buildProfCodes(){
   html+="</div>";
   document.getElementById("prof-codes").innerHTML=html;
 }
- 
+
 // ── Student ──────────────────────────────────────────────────
 let currentStudent=null;
- 
+
 async function studentSubmit(){
   const sec=document.getElementById("sel-section").value;
   const uid=document.getElementById("inp-uid").value.trim().toUpperCase();
   const code=document.getElementById("inp-code").value.trim().toUpperCase();
   const today=todayISO();
- 
+
   if(!sec){ showErr("Please select your section."); return; }
   if(!uid){ showErr("Please enter your UOS Student ID."); return; }
   if(!code){ showErr("Please enter the session code."); return; }
- 
+
   // Location check
   showErr("📍 Checking your location...");
   try {
@@ -325,12 +324,12 @@ async function studentSubmit(){
     showErr("📍 " + e);
     return;
   }
- 
+
   const dayCode=DAILY_CODES[`${today}_${sec}`];
   if(!dayCode){ showErr("No active session for this section today. Ask your professor."); return; }
   if(code!==dayCode.toUpperCase()){ showErr("Incorrect session code. Please check the projector."); return; }
   if(!inWindow(sec)){ showErr("Attendance window is "+windowStr(sec)+" only. You are outside the allowed time."); return; }
- 
+
   const matches=(ROSTER[sec]||[]).filter(s=>s.id===uid);
   if(!matches.length){
     const other=Object.entries(ROSTER).filter(([s])=>s!==sec).flatMap(([,r])=>r).filter(s=>s.id===uid);
@@ -338,13 +337,13 @@ async function studentSubmit(){
     else showErr("UOS ID not found in this section's roster. Please check your ID.");
     return;
   }
- 
+
   currentStudent={...matches[0], section:sec, uid, today};
- 
+
   document.getElementById("conf-name").textContent=`${matches[0].first} ${matches[0].last}`;
   document.getElementById("conf-uid").textContent=uid;
   document.getElementById("conf-sec").textContent=`Section ${sec} · ${fmtDate(today)}`;
- 
+
   const t=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
   const params=new URLSearchParams({
     [ENTRIES.id]: uid,
@@ -354,10 +353,10 @@ async function studentSubmit(){
     [ENTRIES.code]: dayCode
   });
   document.getElementById("form-link").href=`${GFORM}?${params.toString()}`;
- 
+
   showStep("step-confirm");
 }
- 
+
 function markDone(){
   if(!currentStudent) return;
   document.getElementById("done-name").textContent=`${currentStudent.first} ${currentStudent.last}`;
@@ -365,14 +364,9 @@ function markDone(){
   document.getElementById("done-date").textContent=`${fmtDate(currentStudent.today)} · Section ${currentStudent.section}`;
   setTimeout(()=>showStep("step-done"), 300);
 }
- 
+
 // Init
 document.getElementById("date-badge").textContent=fmtDate(todayISO());
 </script>
 </body>
 </html>
- 
-
-
-
-
