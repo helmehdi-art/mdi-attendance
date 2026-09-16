@@ -315,15 +315,7 @@ async function studentSubmit(){
   if(!uid){ showErr("Please enter your UOS Student ID."); return; }
   if(!code){ showErr("Please enter the session code."); return; }
 
-  // Location check
-  showErr("📍 Checking your location...");
-  try {
-    await checkLocation();
-    document.getElementById("student-err").classList.add("hidden");
-  } catch(e) {
-    showErr("📍 " + e);
-    return;
-  }
+  // Location check disabled
 
   const dayCode=DAILY_CODES[`${today}_${sec}`];
   if(!dayCode){ showErr("No active session for this section today. Ask your professor."); return; }
