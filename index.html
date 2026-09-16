@@ -87,7 +87,7 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
       <div class="sec" id="conf-sec"></div>
     </div>
     <div class="decl">"I confirm that I am physically present in today's class and I am submitting this record myself."</div>
-    <button id="submit-btn" class="btn btn-green" onclick="submitAttendance()">✅ &nbsp;Tap here to submit attendance</button>
+    <a id="form-link" href="#" target="_blank" class="btn btn-green" style="text-decoration:none" onclick="markDone()">✅ &nbsp;Tap here to submit attendance</a>
     <button class="btn btn-outline" onclick="showStep('step-form')">← Back</button>
   </div>
   <div id="step-done" class="hidden">
@@ -219,8 +219,8 @@ const SECTIONS = {
   "63": {startH:11, startM:0, open:0, close:15},
 };
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwberjOm7GHzZnnazBaH1fg66Hf4zIBD9KbQv5SwGSSNVgP-2lQfKHeYUjdHDTmOftK/exec";
-const SECRET = "MDI-UOS-2026";
+const GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSdlKs0j4C3QO76m83kii-sxdK2n3UPMIhpzEkevxUZde4lIqw/viewform";
+const ENTRIES = {id:"entry.859883994", name:"entry.328045231", section:"entry.898028898", date:"entry.601481051", code:"entry.285424766"};
 
 // Geofencing — Medical Campus, University of Sharjah
 const CLASSROOM = { lat: 25.2880276, lng: 55.4778527, radius: 200 }; // 200 metres
@@ -338,39 +338,23 @@ async function studentSubmit(){
 
 
 
+  const params=new URLSearchParams({
+    [ENTRIES.id]: uid,
+    [ENTRIES.name]: `${matches[0].first} ${matches[0].last}`,
+    [ENTRIES.section]: `Section ${sec}`,
+    [ENTRIES.date]: today,
+    [ENTRIES.code]: dayCode
+  });
+  document.getElementById("form-link").href=`${GFORM}?${params.toString()}`;
   showStep("step-confirm");
 }
 
-async function submitAttendance(){
+function markDone(){
   if(!currentStudent) return;
-  const btn = document.getElementById("submit-btn");
-  btn.textContent = "⏳ Submitting...";
-  btn.disabled = true;
-
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        secret: SECRET,
-        uid: currentStudent.uid,
-        name: `${currentStudent.first} ${currentStudent.last}`,
-        section: currentStudent.section,
-        date: currentStudent.today,
-        code: DAILY_CODES[`${currentStudent.today}_${currentStudent.section}`]
-      })
-    });
-    // no-cors means we can't read response, assume success
-    document.getElementById("done-name").textContent=`${currentStudent.first} ${currentStudent.last}`;
-    document.getElementById("done-uid").textContent=currentStudent.uid;
-    document.getElementById("done-date").textContent=`${fmtDate(currentStudent.today)} · Section ${currentStudent.section}`;
-    showStep("step-done");
-  } catch(err) {
-    btn.textContent = "✅ Tap here to submit attendance";
-    btn.disabled = false;
-    showErr("Submission failed. Please try again.");
-  }
+  document.getElementById("done-name").textContent=`${currentStudent.first} ${currentStudent.last}`;
+  document.getElementById("done-uid").textContent=currentStudent.uid;
+  document.getElementById("done-date").textContent=`${fmtDate(currentStudent.today)} · Section ${currentStudent.section}`;
+  setTimeout(()=>showStep("step-done"), 300);
 }
 
 // Init
