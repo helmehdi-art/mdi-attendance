@@ -260,7 +260,7 @@ const PIN = "1221";
 function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function fmtDate(iso){ const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],dt=new Date(iso+"T12:00:00"),[,m,d]=iso.split("-"); return `${days[dt.getDay()]} ${d}/${m}`; }
 function nowMin(){ const n=new Date(); return n.getHours()*60+n.getMinutes(); }
-function inWindow(sec){ return true; /* TIME DISABLED FOR TESTING */ }
+function inWindow(sec){ const s=SECTIONS[sec], o=s.startH*60+s.startM+s.open, c=s.startH*60+s.startM+s.close; return nowMin()>=o&&nowMin()<=c; }
 function windowStr(sec){ const s=SECTIONS[sec],o=s.startH*60+s.startM+s.open,c=s.startH*60+s.startM+s.close; return `${Math.floor(o/60)}:${String(o%60).padStart(2,"0")}–${Math.floor(c/60)}:${String(c%60).padStart(2,"0")}`; }
 
 function show(id){
