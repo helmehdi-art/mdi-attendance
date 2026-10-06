@@ -71,6 +71,7 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
       <option value="61">Section 61 · Mon/Wed 8:00 AM</option>
       <option value="63">Section 63 · Mon/Wed 11:00 AM</option>
       <option value="MT">Midterm Exam · Today 5:30 PM</option>
+      <option value="DEMO">🎓 Demo Session</option>
     </select>
     <label>UOS Student ID</label>
     <input type="text" id="inp-uid" placeholder="e.g. U25101234" style="font-family:monospace;letter-spacing:1px;font-size:16px"/>
@@ -291,9 +292,17 @@ const ROSTER = {
     {id:"U25102158",first:"ADA",last:"SHARIEF MOHAMMED SHARIEF MADIKERI ABOOBAKKAR"},
     {id:"U25104423",first:"MARWA",last:"YASINI"},
   ],
+  "DEMO": [
+    {id:"DEMO001",first:"DEMO",last:"STUDENT 1"},
+    {id:"DEMO002",first:"DEMO",last:"STUDENT 2"},
+    {id:"DEMO003",first:"DEMO",last:"STUDENT 3"},
+    {id:"UTEST101",first:"TEST",last:"1 (TEST ACCOUNT)"},
+    {id:"UTEST202",first:"TEST",last:"2 (TEST ACCOUNT)"},
+  ],
 };
 
 const DAILY_CODES = {
+  "2026-10-06_DEMO": "LCPX",
   "2026-10-05_61": "NHSG",
   "2026-10-05_63": "NHSG",
   "2026-09-30_61": "QICW",
@@ -314,6 +323,7 @@ const SECTIONS = {
   "61": {startH:8, startM:0, open:0, close:15},
   "63": {startH:11, startM:0, open:0, close:15},
   "MT": {startH:17, startM:30, open:0, close:30},
+  "DEMO": {startH:0, startM:0, open:0, close:1439},
 };
 
 const GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSdlKs0j4C3QO76m83kii-sxdK2n3UPMIhpzEkevxUZde4lIqw/viewform";
