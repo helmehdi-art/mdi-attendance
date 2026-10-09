@@ -509,25 +509,48 @@ function openAbsentReport(){
   document.getElementById("report-date").value = todayISO();
 }
 
-async function fetchSubmissions(dateISO){
-  // Fetch sheet as CSV (requires sheet to be shared "Anyone with link can view")
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-  const resp = await fetch(url);
-  if(!resp.ok) throw new Error("Could not load sheet. Make sure it is shared as 'Anyone with link can view'.");
-  const text = await resp.text();
-  // Parse CSV rows — columns: Timestamp, Student ID, Student Name, Section, Date, Code
-  const rows = text.trim().split("\n").slice(1); // skip header
-  const submitted = new Set();
-  for(const row of rows){
-    // Simple CSV split (handles quoted fields)
-    const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];
-    const clean = cols.map(c=>c.replace(/^"|"$/g,"").trim());
-    const rowDate = (clean[4]||"").trim(); // Col E = Date
-    const rowSec  = (clean[3]||"").replace(/Section\s*/i,"").trim(); // Col D = Section
-    const rowId   = (clean[1]||"").trim().toUpperCase(); // Col B = Student ID
-    if(rowDate === dateISO) submitted.add(`${rowSec}__${rowId}`);
-  }
-  return submitted;
+function fetchSubmissions(dateISO){
+  // Use JSONP via Google Visualization API — avoids CORS
+  return new Promise((resolve, reject) => {
+    const callbackName = "_gvizCb_" + Date.now();
+    const query = encodeURIComponent("select B,D,E"); // Student ID, Section, Date
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${SHEET_GID}&callback=${callbackName}`;
+
+    const timeout = setTimeout(() => {
+      delete window[callbackName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error("Request timed out. Check your internet connection."));
+    }, 15000);
+
+    window[callbackName] = function(data) {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      try {
+        const rows = data.table.rows || [];
+        const submitted = new Set();
+        for(const row of rows){
+          const cols = row.c || [];
+          const rowId  = (cols[0]&&cols[0].v ? String(cols[0].v) : "").trim().toUpperCase(); // Col B
+          const rowSec = (cols[1]&&cols[1].v ? String(cols[1].v) : "").replace(/Section\s*/i,"").trim(); // Col D
+          const rowDate= (cols[2]&&cols[2].v ? String(cols[2].v) : "").trim(); // Col E
+          if(rowDate === dateISO) submitted.add(`${rowSec}__${rowId}`);
+        }
+        resolve(submitted);
+      } catch(e) {
+        reject(new Error("Could not parse sheet data."));
+      }
+    };
+
+    const script = document.createElement("script");
+    script.src = url;
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      reject(new Error("Could not load sheet. Make sure it is shared as 'Anyone with link can view'."));
+    };
+    document.head.appendChild(script);
+  });
 }
 
 async function runAbsentReport(){
