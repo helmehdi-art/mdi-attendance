@@ -499,8 +499,7 @@ function markDone(){
 }
 
 // ── Absent Report ────────────────────────────────────────────
-const SHEET_ID = "1UaVFIyVKh98hKsOcGGcS3eRYSaS0ppF1YFPnYXQTmkU";
-const SHEET_GID = "0"; // Form Responses 1 tab
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHin7uE26m6b_yA8Ano_9r6QsvkRS6XGiy6O6bvrZpYutOhtc47v5_aKbSAgJJBqOR/exec";
 
 function openAbsentReport(){
   ["screen-login","screen-student","screen-prof","screen-absent"].forEach(s=>document.getElementById(s).classList.add("hidden"));
@@ -509,48 +508,15 @@ function openAbsentReport(){
   document.getElementById("report-date").value = todayISO();
 }
 
-function fetchSubmissions(dateISO){
-  // Use JSONP via Google Visualization API — avoids CORS
-  return new Promise((resolve, reject) => {
-    const callbackName = "_gvizCb_" + Date.now();
-    const query = encodeURIComponent("select B,D,E"); // Student ID, Section, Date
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${SHEET_GID}&callback=${callbackName}`;
-
-    const timeout = setTimeout(() => {
-      delete window[callbackName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error("Request timed out. Check your internet connection."));
-    }, 15000);
-
-    window[callbackName] = function(data) {
-      clearTimeout(timeout);
-      delete window[callbackName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-      try {
-        const rows = data.table.rows || [];
-        const submitted = new Set();
-        for(const row of rows){
-          const cols = row.c || [];
-          const rowId  = (cols[0]&&cols[0].v ? String(cols[0].v) : "").trim().toUpperCase(); // Col B
-          const rowSec = (cols[1]&&cols[1].v ? String(cols[1].v) : "").replace(/Section\s*/i,"").trim(); // Col D
-          const rowDate= (cols[2]&&cols[2].v ? String(cols[2].v) : "").trim(); // Col E
-          if(rowDate === dateISO) submitted.add(`${rowSec}__${rowId}`);
-        }
-        resolve(submitted);
-      } catch(e) {
-        reject(new Error("Could not parse sheet data."));
-      }
-    };
-
-    const script = document.createElement("script");
-    script.src = url;
-    script.onerror = () => {
-      clearTimeout(timeout);
-      delete window[callbackName];
-      reject(new Error("Could not load sheet. Make sure it is shared as 'Anyone with link can view'."));
-    };
-    document.head.appendChild(script);
-  });
+async function fetchSubmissions(dateISO){
+  const resp = await fetch(APPS_SCRIPT_URL);
+  if(!resp.ok) throw new Error("Could not reach the attendance data. Try again in a moment.");
+  const rows = await resp.json();
+  const submitted = new Set();
+  for(const row of rows){
+    if(row.date === dateISO) submitted.add(`${row.section}__${row.id}`);
+  }
+  return submitted;
 }
 
 async function runAbsentReport(){
