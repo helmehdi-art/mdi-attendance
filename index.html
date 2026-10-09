@@ -41,6 +41,24 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
 .hint{font-size:11px;color:#9cb8ad;text-align:center;margin-top:12px;line-height:1.6}
 .hidden{display:none}
 .badge{display:inline-block;background:rgba(4,80,63,0.08);color:#04503F;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:500;margin-bottom:1rem;text-align:center;width:100%}
+/* Absent report */
+.report-card{background:#fff;border-radius:16px;border:1px solid #d0e4dc;padding:1.5rem;width:100%;max-width:480px;margin-top:1rem;box-shadow:0 2px 12px rgba(4,80,63,0.08)}
+.report-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.report-title{font-weight:600;font-size:15px;color:#1a2e25}
+.report-close{background:none;border:1px solid #d0e4dc;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;color:#3d6b55}
+.sec-block{margin-bottom:1.25rem}
+.sec-label{font-size:11px;font-weight:600;color:#3d6b55;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.absent-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;margin-bottom:5px;font-size:13px}
+.absent-name{color:#1a2e25;font-weight:500}
+.absent-id{font-family:monospace;color:#b91c1c;font-size:12px}
+.present-count{font-size:12px;color:#04503F;background:rgba(4,80,63,0.08);border-radius:6px;padding:4px 10px;margin-bottom:8px;display:inline-block}
+.no-data{color:#9cb8ad;font-size:13px;text-align:center;padding:1rem 0}
+.report-date-row{display:flex;gap:8px;align-items:center;margin-bottom:1rem}
+.report-date-row input[type=date]{flex:1;padding:9px 11px;border:1px solid #c2d9d1;border-radius:9px;font-size:13px;font-family:inherit;background:#fff;color:#1a2e25;outline:none}
+.report-date-row input[type=date]:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,0.12)}
+.btn-sm{padding:9px 16px;font-size:13px;border:none;border-radius:9px;cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap}
+.btn-sm-green{background:#04503F;color:#fff}
+.loading-spin{color:#6b9e87;font-size:13px;text-align:center;padding:1rem 0}
 </style>
 </head>
 <body>
@@ -111,7 +129,21 @@ input:focus,select:focus{border-color:#04503F;box-shadow:0 0 0 3px rgba(4,80,63,
     <button onclick="show('screen-login')" style="background:none;border:1px solid #d0e4dc;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;color:#3d6b55">Sign out</button>
   </div>
   <div id="prof-codes"></div>
-  <a href="https://docs.google.com/spreadsheets/" target="_blank" class="btn btn-green" style="text-decoration:none;margin-top:1rem">📊 Open Google Sheet</a>
+  <button class="btn btn-outline" onclick="openAbsentReport()" style="margin-top:8px">🔴 &nbsp;Absent Report</button>
+  <a href="https://docs.google.com/spreadsheets/d/1UaVFIyVKh98hKsOcGGcS3eRYSaS0ppF1YFPnYXQTmkU" target="_blank" class="btn btn-green" style="text-decoration:none;margin-top:8px">📊 &nbsp;Open Google Sheet</a>
+</div>
+
+<!-- ABSENT REPORT SCREEN -->
+<div id="screen-absent" class="report-card hidden">
+  <div class="report-header">
+    <div class="report-title">🔴 Absent Report</div>
+    <button class="report-close" onclick="show('screen-prof')">← Back</button>
+  </div>
+  <div class="report-date-row">
+    <input type="date" id="report-date" />
+    <button class="btn-sm btn-sm-green" onclick="runAbsentReport()">Show</button>
+  </div>
+  <div id="report-output"><p class="no-data">Select a date and tap Show.</p></div>
 </div>
 
 </div>
@@ -365,7 +397,7 @@ function inWindow(sec){ const s=SECTIONS[sec], o=s.startH*60+s.startM+s.open, c=
 function windowStr(sec){ const s=SECTIONS[sec],o=s.startH*60+s.startM+s.open,c=s.startH*60+s.startM+s.close; return `${Math.floor(o/60)}:${String(o%60).padStart(2,"0")}–${Math.floor(c/60)}:${String(c%60).padStart(2,"0")}`; }
 
 function show(id){
-  ["screen-login","screen-student","screen-prof"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+  ["screen-login","screen-student","screen-prof","screen-absent"].forEach(s=>document.getElementById(s).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
   if(id==="screen-student"){ document.getElementById("date-badge").textContent=fmtDate(todayISO()); showStep("step-form"); }
   if(id==="screen-prof") buildProfCodes();
@@ -464,6 +496,118 @@ function markDone(){
   document.getElementById("done-uid").textContent=currentStudent.uid;
   document.getElementById("done-date").textContent=`${fmtDate(currentStudent.today)} · Section ${currentStudent.section}`;
   setTimeout(()=>showStep("step-done"), 300);
+}
+
+// ── Absent Report ────────────────────────────────────────────
+const SHEET_ID = "1UaVFIyVKh98hKsOcGGcS3eRYSaS0ppF1YFPnYXQTmkU";
+const SHEET_GID = "0"; // Form Responses 1 tab
+
+function openAbsentReport(){
+  ["screen-login","screen-student","screen-prof","screen-absent"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById("screen-absent").classList.remove("hidden");
+  // Default to today
+  document.getElementById("report-date").value = todayISO();
+}
+
+async function fetchSubmissions(dateISO){
+  // Fetch sheet as CSV (requires sheet to be shared "Anyone with link can view")
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+  const resp = await fetch(url);
+  if(!resp.ok) throw new Error("Could not load sheet. Make sure it is shared as 'Anyone with link can view'.");
+  const text = await resp.text();
+  // Parse CSV rows — columns: Timestamp, Student ID, Student Name, Section, Date, Code
+  const rows = text.trim().split("\n").slice(1); // skip header
+  const submitted = new Set();
+  for(const row of rows){
+    // Simple CSV split (handles quoted fields)
+    const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];
+    const clean = cols.map(c=>c.replace(/^"|"$/g,"").trim());
+    const rowDate = (clean[4]||"").trim(); // Col E = Date
+    const rowSec  = (clean[3]||"").replace(/Section\s*/i,"").trim(); // Col D = Section
+    const rowId   = (clean[1]||"").trim().toUpperCase(); // Col B = Student ID
+    if(rowDate === dateISO) submitted.add(`${rowSec}__${rowId}`);
+  }
+  return submitted;
+}
+
+async function runAbsentReport(){
+  const dateISO = document.getElementById("report-date").value;
+  if(!dateISO){ document.getElementById("report-output").innerHTML='<p class="no-data">Please select a date.</p>'; return; }
+
+  // Check if date had any sessions
+  const hasSec61 = !!DAILY_CODES[`${dateISO}_61`];
+  const hasSec63 = !!DAILY_CODES[`${dateISO}_63`];
+  if(!hasSec61 && !hasSec63){
+    document.getElementById("report-output").innerHTML=`<p class="no-data">No session code set for ${fmtDate(dateISO)}. No class was held.</p>`;
+    return;
+  }
+
+  document.getElementById("report-output").innerHTML='<p class="loading-spin">⏳ Loading submissions…</p>';
+
+  let submitted;
+  try {
+    submitted = await fetchSubmissions(dateISO);
+  } catch(e) {
+    document.getElementById("report-output").innerHTML=`<div class="err">${e.message}</div>`;
+    return;
+  }
+
+  let html = `<div style="font-size:12px;color:#6b9e87;margin-bottom:1rem">📅 ${fmtDate(dateISO)}</div>`;
+
+  const sections = [];
+  if(hasSec61) sections.push("61");
+  if(hasSec63) sections.push("63");
+
+  for(const sec of sections){
+    const roster = ROSTER[sec]||[];
+    const absent = roster.filter(s => !submitted.has(`${sec}__${s.id}`));
+    const presentCount = roster.length - absent.length;
+
+    html += `<div class="sec-block">
+      <div class="sec-label">Section ${sec} · ${sec==="61"?"8:00 AM":"11:00 AM"}</div>
+      <div class="present-count">✅ ${presentCount} / ${roster.length} present</div>`;
+
+    if(absent.length === 0){
+      html += `<div style="color:#04503F;font-size:13px;padding:6px 0">🎉 Full attendance!</div>`;
+    } else {
+      html += `<div style="font-size:12px;color:#b91c1c;font-weight:600;margin-bottom:6px">❌ ${absent.length} absent</div>`;
+      absent.forEach((s,i)=>{
+        html += `<div class="absent-row">
+          <span class="absent-name">${i+1}. ${s.first} ${s.last}</span>
+          <span class="absent-id">${s.id}</span>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  }
+
+  // Copy button
+  html += `<button class="btn btn-outline" style="margin-top:0.5rem;font-size:13px" onclick="copyReport('${dateISO}')">📋 &nbsp;Copy report</button>`;
+
+  document.getElementById("report-output").innerHTML = html;
+}
+
+function copyReport(dateISO){
+  const hasSec61 = !!DAILY_CODES[`${dateISO}_61`];
+  const hasSec63 = !!DAILY_CODES[`${dateISO}_63`];
+  // Re-read the rendered absent rows from DOM
+  let text = `Absent Report — ${fmtDate(dateISO)}\n`;
+  text += "================================\n";
+  const blocks = document.querySelectorAll(".sec-block");
+  blocks.forEach(block=>{
+    const label = block.querySelector(".sec-label")?.textContent||"";
+    const count = block.querySelector(".present-count")?.textContent||"";
+    text += `\n${label}\n${count}\n`;
+    block.querySelectorAll(".absent-row").forEach(row=>{
+      const name = row.querySelector(".absent-name")?.textContent||"";
+      const id   = row.querySelector(".absent-id")?.textContent||"";
+      text += `  ${name}  ${id}\n`;
+    });
+  });
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector("#report-output button");
+    if(btn){ btn.textContent="✅ Copied!"; setTimeout(()=>{ btn.innerHTML="📋 &nbsp;Copy report"; },2000); }
+  }).catch(()=>alert(text));
 }
 
 // Init
