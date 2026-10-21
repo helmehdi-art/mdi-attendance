@@ -330,6 +330,7 @@ const ROSTER = {
 const DAILY_CODES = {
   "2026-10-21_61": "VKPM",
   "2026-10-21_63": "RZWJ",
+  "2026-10-22_DEMO": "LIVE",
   "2026-10-14_DEMO": "SHOW",
   "2026-10-12_61": "LTAG",
   "2026-10-12_63": "UCFG",
@@ -356,7 +357,7 @@ const SECTIONS = {
   "61": {startH:8, startM:0, open:0, close:15},
   "63": {startH:11, startM:0, open:0, close:15},
   "MT": {startH:17, startM:30, open:0, close:30},
-  "DEMO": {startH:0, startM:0, open:0, close:1439},
+  "DEMO": {startH:11, startM:30, open:0, close:120},
 };
 
 const GFORM = "https://docs.google.com/forms/d/e/1FAIpQLSdlKs0j4C3QO76m83kii-sxdK2n3UPMIhpzEkevxUZde4lIqw/viewform";
@@ -455,12 +456,14 @@ async function studentSubmit(){
   if(!uid){ showErr("Please enter your UOS Student ID."); return; }
   if(!code){ showErr("Please enter the session code."); return; }
 
-  // Location check — must be within CLASSROOM radius
-  try {
-    await checkLocation();
-  } catch(locErr) {
-    showErr("📍 " + locErr);
-    return;
+  // Location check — skip for DEMO section
+  if(sec !== "DEMO") {
+    try {
+      await checkLocation();
+    } catch(locErr) {
+      showErr("📍 " + locErr);
+      return;
+    }
   }
 
   const dayCode=DAILY_CODES[`${today}_${sec}`];
